@@ -18,7 +18,7 @@ class Invoice
   end
 
   def prep_time(time)
-    return nil if !time
+    return nil unless time
     Time.parse(time)
   end
 
@@ -28,6 +28,10 @@ class Invoice
 
   def items
     @parent.find_items_by_id(@id)
+  end
+
+  def merchant_items
+    @parent.find_items_by_merchant_id(@merchant_id)
   end
 
   def transactions
@@ -43,17 +47,17 @@ class Invoice
   end
 
   def is_paid_in_full?
-    transactions.any? { |t| t.is_successful? }
+    transactions.any?(&:is_successful?)
   end
 
   def total
-    total = invoice_items.reduce(0) do |sum, invoice_item|
+    return 0 unless is_paid_in_full?
+    invoice_items.reduce(0) do |sum, invoice_item|
       sum += invoice_item.bulk_price
     end
-    total if is_paid_in_full?
   end
 
   def weekday_created
-    created_at.strftime("%A")
+    created_at.strftime('%A')
   end
 end
